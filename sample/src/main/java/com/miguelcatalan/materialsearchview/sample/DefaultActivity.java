@@ -30,7 +30,8 @@ public class DefaultActivity extends AppCompatActivity {
         searchView.setVoiceSearch(false);
         searchView.setCursorDrawable(R.drawable.custom_cursor);
         searchView.setEllipsize(true);
-        searchView.setSuggestions(getResources().getStringArray(R.array.query_suggestions));
+        searchView.setSuggestionsWithDefault(getResources().getStringArray(R.array.query_suggestions),
+                getResources().getStringArray(R.array.default_search_suggestions));
         searchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {

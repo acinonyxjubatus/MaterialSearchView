@@ -421,6 +421,28 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
     }
 
     /**
+     * Set Adapter for suggestions list with the given suggestion array and default suggestion array
+     * @param suggestions array of suggestions
+     * @param emptySuggestions array of default suggestions - shows when input text is empty
+     */
+    public void setSuggestionsWithDefault(String[] suggestions, String[] emptySuggestions) {
+        if (emptySuggestions != null && emptySuggestions.length > 0) {
+            mTintView.setVisibility(VISIBLE);
+            final SearchAdapter adapter = new SearchAdapter(mContext, suggestions, emptySuggestions, suggestionIcon, ellipsize);
+            setAdapter(adapter);
+
+            setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    setQuery((String) adapter.getItem(position), submit);
+                }
+            });
+        } else {
+            mTintView.setVisibility(GONE);
+        }
+    }
+
+    /**
      * Dismiss the suggestions list.
      */
     public void dismissSuggestions() {

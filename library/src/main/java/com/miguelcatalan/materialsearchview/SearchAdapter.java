@@ -24,6 +24,7 @@ public class SearchAdapter extends BaseAdapter implements Filterable {
 
     private ArrayList<String> data;
     private String[] suggestions;
+    private String[] defaultSuggestions;
     private Drawable suggestionIcon;
     private LayoutInflater inflater;
     private boolean ellipsize;
@@ -40,6 +41,19 @@ public class SearchAdapter extends BaseAdapter implements Filterable {
         this.suggestions = suggestions;
         this.suggestionIcon = suggestionIcon;
         this.ellipsize = ellipsize;
+    }
+
+    public SearchAdapter(Context context, String[] suggestions, String[] defaultSuggestions, Drawable suggestionIcon, boolean ellipsize) {
+        inflater = LayoutInflater.from(context);
+        data = new ArrayList<>();
+        this.suggestions = suggestions;
+        this.defaultSuggestions = defaultSuggestions;
+        this.suggestionIcon = suggestionIcon;
+        this.ellipsize = ellipsize;
+    }
+
+    public void setDefaultSuggestions(String[] suggestions){
+        this.defaultSuggestions = suggestions;
     }
 
     @Override
@@ -60,6 +74,13 @@ public class SearchAdapter extends BaseAdapter implements Filterable {
                     }
 
                     // Assign the data to the FilterResults
+                    filterResults.values = searchData;
+                    filterResults.count = searchData.size();
+                }else if(defaultSuggestions!=null){
+                    List<String> searchData = new ArrayList<>();
+                    for (String string : defaultSuggestions) {
+                        searchData.add(string);
+                    }
                     filterResults.values = searchData;
                     filterResults.count = searchData.size();
                 }
