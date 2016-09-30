@@ -46,6 +46,7 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
 
     private MenuItem mMenuItem;
     private boolean mIsSearchOpen = false;
+    private boolean mIsSearchCovered = false;
     private int mAnimationDuration;
     private boolean mClearingFocus;
 
@@ -185,6 +186,7 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 mUserQuery = s;
+                mIsSearchCovered = false;
                 startFilter(s);
                 MaterialSearchView.this.onTextChanged(s);
             }
@@ -199,7 +201,9 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
+                    mIsSearchCovered = false;
                     showKeyboard(mSearchSrcTextView);
+                    updateSearchCoveredState();
                     showSuggestions();
                 }
             }
@@ -224,7 +228,7 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
             } else if (v == mSearchSrcTextView) {
                 showSuggestions();
             } else if (v == mTintView) {
-                closeSearch();
+                coverSearch();
             }
         }
     };
@@ -261,7 +265,7 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
         CharSequence query = mSearchSrcTextView.getText();
         if (query != null && TextUtils.getTrimmedLength(query) > 0) {
             if (mOnQueryChangeListener == null || !mOnQueryChangeListener.onQueryTextSubmit(query.toString())) {
-                closeSearch();
+                coverSearch();
                 mSearchSrcTextView.setText(null);
             }
         }
@@ -364,7 +368,12 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
      * Call this method to show suggestions list. This shows up when adapter is set. Call {@link #setAdapter(ListAdapter)} before calling this.
      */
     public void showSuggestions() {
-        if (mAdapter != null && mAdapter.getCount() > 0 && mSuggestionsListView.getVisibility() == GONE) {
+        if (mAdapter != null && mAdapter.getCount() > 0
+                && mSuggestionsListView.getVisibility() == GONE && !isSearchCovered()) {
+            if(mAdapter  instanceof  SearchAdapter){
+                ((SearchAdapter)mAdapter).notifyDataSetChanged();
+            }
+            mTintView.setVisibility(VISIBLE);
             mSuggestionsListView.setVisibility(VISIBLE);
         }
     }
@@ -405,19 +414,26 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
      */
     public void setSuggestions(String[] suggestions) {
         if (suggestions != null && suggestions.length > 0) {
-            mTintView.setVisibility(VISIBLE);
-            final SearchAdapter adapter = new SearchAdapter(mContext, suggestions, suggestionIcon, ellipsize);
-            setAdapter(adapter);
-
-            setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    setQuery((String) adapter.getItem(position), submit);
-                }
-            });
+            initAdapter(suggestions, null);
         } else {
             mTintView.setVisibility(GONE);
         }
+    }
+
+    private void initAdapter(String[] suggestions, String[] emptySuggestions){
+        mTintView.setVisibility(VISIBLE);
+        SearchAdapter adapter = new SearchAdapter(mContext, suggestions, suggestionIcon, ellipsize);
+        if(emptySuggestions != null){
+            adapter.setDefaultSuggestions(emptySuggestions);
+        }
+        setAdapter(adapter);
+
+        setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                setQuery((String) mAdapter.getItem(position), submit);
+            }
+        });
     }
 
     /**
@@ -427,18 +443,9 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
      */
     public void setSuggestionsWithDefault(String[] suggestions, String[] emptySuggestions) {
         if (emptySuggestions != null && emptySuggestions.length > 0) {
-            mTintView.setVisibility(VISIBLE);
-            final SearchAdapter adapter = new SearchAdapter(mContext, suggestions, emptySuggestions, suggestionIcon, ellipsize);
-            setAdapter(adapter);
-
-            setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    setQuery((String) adapter.getItem(position), submit);
-                }
-            });
+            initAdapter(suggestions, emptySuggestions);
         } else {
-            mTintView.setVisibility(GONE);
+            setSuggestions(suggestions);
         }
     }
 
@@ -508,6 +515,15 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
     }
 
     /**
+     * Return true if search is covered. I.e. show toolbar edittext while suggestions and keyboard stays hidden
+     *
+     * @return
+     */
+    public boolean isSearchCovered() {
+        return mIsSearchCovered;
+    }
+
+    /**
      * Sets animation duration. ONLY FOR PRE-LOLLIPOP!!
      *
      * @param duration duration of the animation
@@ -539,7 +555,6 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
 
         if (animate) {
             setVisibleWithAnimation();
-
         } else {
             mSearchLayout.setVisibility(VISIBLE);
             if (mSearchViewListener != null) {
@@ -547,6 +562,8 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
             }
         }
         mIsSearchOpen = true;
+        mIsSearchCovered = false;
+        updateSearchCoveredState();
     }
 
     private void setVisibleWithAnimation() {
@@ -583,7 +600,7 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
      * Close search view.
      */
     public void closeSearch() {
-        if (!isSearchOpen()) {
+        if (!isSearchOpen() && !isSearchCovered()) {
             return;
         }
 
@@ -596,7 +613,36 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
             mSearchViewListener.onSearchViewClosed();
         }
         mIsSearchOpen = false;
+        mIsSearchCovered = false;
+        updateSearchCoveredState();
+    }
 
+    /**
+     * notify adapter about searchView state
+     */
+    private void updateSearchCoveredState(){
+        if(mAdapter instanceof SearchAdapter){
+            ((SearchAdapter)mAdapter).setSearchCovered(mIsSearchCovered);
+            ((SearchAdapter)mAdapter).notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * Cover search view. I.e. show toolbar edittext while suggestionListView and keyboard stays hidden
+     */
+    public void coverSearch() {
+        mSearchSrcTextView.setText(null);
+        dismissSuggestions();
+        clearFocus();
+        if (mSearchViewListener != null) {
+            mSearchViewListener.onSearchViewCovered();
+        }
+        mIsSearchOpen = false;
+        mIsSearchCovered = true;
+        updateSearchCoveredState();
+        mTintView.setVisibility(GONE);
+        mSuggestionsListView.setVisibility(GONE);
+        mSearchLayout.setVisibility(VISIBLE);
     }
 
     /**
@@ -744,6 +790,8 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
         void onSearchViewShown();
 
         void onSearchViewClosed();
+
+        void onSearchViewCovered();
     }
 
 

@@ -55,6 +55,11 @@ public class VoiceActivity extends AppCompatActivity {
             public void onSearchViewClosed() {
                 //Do some magic
             }
+
+            @Override
+            public void onSearchViewCovered() {
+
+            }
         });
     }
 

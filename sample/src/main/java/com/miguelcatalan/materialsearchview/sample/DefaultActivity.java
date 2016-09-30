@@ -57,7 +57,13 @@ public class DefaultActivity extends AppCompatActivity {
             public void onSearchViewClosed() {
                 //Do some magic
             }
+
+            @Override
+            public void onSearchViewCovered() {
+                //Do some magic
+            }
         });
+        searchView.coverSearch();
     }
 
     @Override

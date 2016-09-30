@@ -28,6 +28,7 @@ public class SearchAdapter extends BaseAdapter implements Filterable {
     private Drawable suggestionIcon;
     private LayoutInflater inflater;
     private boolean ellipsize;
+    private boolean isSearchCovered = false;
 
     public SearchAdapter(Context context, String[] suggestions) {
         inflater = LayoutInflater.from(context);
@@ -56,6 +57,10 @@ public class SearchAdapter extends BaseAdapter implements Filterable {
         this.defaultSuggestions = suggestions;
     }
 
+    public void setSearchCovered(boolean searchCovered) {
+        isSearchCovered = searchCovered;
+    }
+
     @Override
     public Filter getFilter() {
         Filter filter = new Filter() {
@@ -76,7 +81,7 @@ public class SearchAdapter extends BaseAdapter implements Filterable {
                     // Assign the data to the FilterResults
                     filterResults.values = searchData;
                     filterResults.count = searchData.size();
-                }else if(defaultSuggestions!=null){
+                }else if(defaultSuggestions!=null && !isSearchCovered){
                     List<String> searchData = new ArrayList<>();
                     for (String string : defaultSuggestions) {
                         searchData.add(string);
