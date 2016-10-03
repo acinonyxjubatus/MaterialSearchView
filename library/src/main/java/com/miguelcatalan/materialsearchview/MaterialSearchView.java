@@ -266,7 +266,6 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
         if (query != null && TextUtils.getTrimmedLength(query) > 0) {
             if (mOnQueryChangeListener == null || !mOnQueryChangeListener.onQueryTextSubmit(query.toString())) {
                 coverSearch();
-                mSearchSrcTextView.setText(null);
             }
         }
     }
@@ -550,7 +549,7 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
         }
 
         //Request Focus
-        mSearchSrcTextView.setText(null);
+//        mSearchSrcTextView.setText(null);
         mSearchSrcTextView.requestFocus();
 
         if (animate) {
@@ -631,7 +630,6 @@ public class MaterialSearchView extends FrameLayout implements Filter.FilterList
      * Cover search view. I.e. show toolbar edittext while suggestionListView and keyboard stays hidden
      */
     public void coverSearch() {
-        mSearchSrcTextView.setText(null);
         dismissSuggestions();
         clearFocus();
         if (mSearchViewListener != null) {
