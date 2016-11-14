@@ -4,11 +4,6 @@
     android:layout_height="match_parent">
 
     <!-- Irrelevant stuff -->
-    <include
-        layout="@layout/mok_items"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="?attr/actionBarSize" />
 
     <!-- Must be last for right layering display -->
     <FrameLayout
@@ -27,5 +22,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
     </FrameLayout>
+
+    <include
+        layout="@layout/mok_items"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize" />
 
 </FrameLayout>

@@ -13,12 +13,6 @@ Maybe it would be useful to take a look into the new official approach
 http://www.materialdoc.com/search-filter/
 
 # Usage
-**Add the dependencies to your gradle file:**
-```javascript
-	dependencies {
-    	compile 'com.miguelcatalan:materialsearchview:1.4.0'
-	}
-```
 **Add MaterialSearchView to your layout file along with the Toolbar** *(Add this block at the bottom of your layout, in order to display it over the rest of the view)*:
 
 ```xml
